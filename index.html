@@ -786,27 +786,39 @@
       addLog(`命運【${event.level}】降臨。內容是：${event.text}`);
     }
 
-    function newQuestion() {
-      if (quizData.length === 0) {
-        document.getElementById("quizContent").innerHTML = `
-          <div class="story-title">題庫是空的</div>
-          <div class="quiz-question">請到 <code>const quizData = [ ... ]</code> 裡新增題目。</div>
-          <div id="quizAnswer" class="quiz-answer"></div>
-        `;
-        return;
-      }
+function newQuestion() {
+  const quizContent = document.getElementById("quizContent");
 
-      const randomIndex = Math.floor(Math.random() * quizData.length);
-      currentQuestion = quizData[randomIndex];
+  if (!quizContent) {
+    addLog("找不到 quizContent 區塊。");
+    return;
+  }
 
-      document.getElementById("quizContent").innerHTML = `
-        <div class="story-title">本回合題目</div>
-        <div class="quiz-question">${currentQuestion.question}</div>
-        <div id="quizAnswer" class="quiz-answer">${currentQuestion.answer}</div>
-      `;
+  if (!quizData || quizData.length === 0) {
+    quizContent.innerHTML = `
+      <div class="story-title">題庫是空的</div>
+      <div class="quiz-question">請到 const quizData = [ ... ] 裡新增題目。</div>
+      <div id="quizAnswer" class="quiz-answer"></div>
+    `;
+    return;
+  }
 
-      addLog(`抽到題目：${currentQuestion.question}`);
-    }
+  const randomIndex = Math.floor(Math.random() * quizData.length);
+  currentQuestion = quizData[randomIndex];
+
+  quizContent.innerHTML = `
+    <div class="story-title">本回合題目</div>
+    <div class="quiz-question">${currentQuestion.question}</div>
+    <div id="quizAnswer" class="quiz-answer">${currentQuestion.answer}</div>
+  `;
+
+  const answerBox = document.getElementById("quizAnswer");
+  if (answerBox) {
+    answerBox.style.display = "none";
+  }
+
+  addLog("抽到題目：" + currentQuestion.question);
+}
 
     function showAnswer() {
       const answerBox = document.getElementById("quizAnswer");
