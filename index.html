@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>隨機題目頁面</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: #f5f7fb;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .card {
+      background: white;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      padding: 32px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .question {
+      font-size: 1.5rem;
+      margin: 24px 0;
+      color: #222;
+      min-height: 60px;
+    }
+
+    .answer {
+      font-size: 1.2rem;
+      color: #00695c;
+      margin: 20px 0;
+      display: none;
+      padding: 16px;
+      background: #e8f5e9;
+      border-radius: 12px;
+    }
+
+    button {
+      margin: 8px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: #3f51b5;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>隨機題目</h1>
+    <div id="question" class="question">載入中...</div>
+    <div id="answer" class="answer"></div>
+
+    <button onclick="showAnswer()">顯示答案</button>
+    <button onclick="newQuestion()">再抽一題</button>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "3 + 5 = ?",
+        answer: "8"
+      },
+      {
+        question: "台灣的首都是哪裡？",
+        answer: "台北市"
+      },
+      {
+        question: "2X - 3 = 0，X = ?",
+        answer: "X = 1.5"
+      },
+      {
+        question: "水的化學式是什麼？",
+        answer: "H₂O"
+      }
+    ];
+
+    let currentQuestion = null;
+
+    function newQuestion() {
+      const randomIndex = Math.floor(Math.random() * quizData.length);
+      currentQuestion = quizData[randomIndex];
+
+      document.getElementById("question").textContent = currentQuestion.question;
+      document.getElementById("answer").textContent = currentQuestion.answer;
+      document.getElementById("answer").style.display = "none";
+    }
+
+    function showAnswer() {
+      document.getElementById("answer").style.display = "block";
+    }
+
+    newQuestion();
+  </script>
+</body>
+</html>
