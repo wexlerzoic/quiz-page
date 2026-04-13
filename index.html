@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>礦坑冒險事件頁</title>
+  <title>礦坑冒險問答事件頁</title>
   <style>
     * {
       box-sizing: border-box;
@@ -21,7 +21,7 @@
 
     .container {
       width: 100%;
-      max-width: 980px;
+      max-width: 1180px;
       margin: 0 auto;
     }
 
@@ -53,7 +53,14 @@
 
     .top-grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .mid-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 20px;
       margin-bottom: 20px;
     }
@@ -125,6 +132,11 @@
       color: #3a1111;
     }
 
+    .success-btn {
+      background: #9fe0b1;
+      color: #10301a;
+    }
+
     .event-card {
       min-height: 260px;
       line-height: 1.8;
@@ -149,6 +161,12 @@
       background: rgba(145, 184, 255, 0.18);
       color: #b9d1ff;
       border: 1px solid rgba(145, 184, 255, 0.35);
+    }
+
+    .quiz-badge {
+      background: rgba(159, 224, 177, 0.18);
+      color: #b6f0c4;
+      border: 1px solid rgba(159, 224, 177, 0.35);
     }
 
     .lucky {
@@ -235,6 +253,27 @@
       margin-top: 4px;
     }
 
+    .quiz-box {
+      line-height: 1.8;
+      min-height: 260px;
+    }
+
+    .quiz-question {
+      font-size: 1.15rem;
+      color: #fff7df;
+      margin: 10px 0 14px;
+      min-height: 60px;
+    }
+
+    .quiz-answer {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(159, 224, 177, 0.10);
+      color: #dffff0;
+    }
+
     .log-box {
       margin-top: 16px;
       background: rgba(255, 255, 255, 0.04);
@@ -265,8 +304,9 @@
       line-height: 1.7;
     }
 
-    @media (max-width: 860px) {
+    @media (max-width: 900px) {
       .top-grid,
+      .mid-grid,
       .bottom-grid,
       .status-grid,
       .loot-grid {
@@ -282,10 +322,10 @@
 <body>
   <div class="container">
     <div class="title-box">
-      <h1>礦坑冒險事件頁</h1>
+      <h1>礦坑冒險問答事件頁</h1>
       <p>
-        每回合先擲骰，再依序觸發「機會」與隨機的「命運」。<br>
-        機會推進故事，命運改變局勢，戰利品則會悄悄把角色雕成另一種樣子。
+        每回合先擲骰，再觸發機會、命運與一道題目。<br>
+        故事會往前走，命運會左右搖晃，而題目像一道窄橋，逼你踩著理解通過。
       </p>
     </div>
 
@@ -304,8 +344,8 @@
         </div>
 
         <div class="tip">
-          機會卡池具有順序性，會一張一張往下推進。<br>
-          命運事件則是每回合額外抽出的突發波浪。
+          按下「開始回合」後，會自動完成：<br>
+          擲骰 → 機會 → 命運 → 抽題
         </div>
       </div>
 
@@ -316,7 +356,7 @@
       </div>
     </div>
 
-    <div class="bottom-grid">
+    <div class="mid-grid">
       <div class="panel event-card">
         <div class="event-badge chance-badge">機會</div>
         <div id="chanceContent">
@@ -329,14 +369,30 @@
         <div class="event-badge fate-badge">命運</div>
         <div id="fateContent">
           <div class="story-title">尚未觸發命運事件</div>
-          <div>命運就像礦坑裡吹來的側風，不一定大，但總會改變你站的位置。</div>
+          <div>命運像礦坑裡的側風，不一定大，但總會讓火光歪一點。</div>
         </div>
       </div>
     </div>
 
-    <div class="panel" style="margin-top: 20px;">
-      <div class="log-title">回合紀錄</div>
-      <div id="logBox" class="log-box"></div>
+    <div class="bottom-grid">
+      <div class="panel quiz-box">
+        <div class="event-badge quiz-badge">題目</div>
+        <div id="quizContent">
+          <div class="story-title">尚未抽出題目</div>
+          <div class="quiz-question">按下「開始回合」後，這裡會隨機出現一道題目。</div>
+          <div id="quizAnswer" class="quiz-answer"></div>
+        </div>
+
+        <div class="button-row" style="justify-content:flex-start;">
+          <button class="success-btn" onclick="showAnswer()">顯示答案</button>
+          <button class="secondary-btn" onclick="newQuestion()">再抽一題</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="log-title">回合紀錄</div>
+        <div id="logBox" class="log-box"></div>
+      </div>
     </div>
   </div>
 
@@ -359,6 +415,7 @@
     let currentDice = null;
     let chanceIndex = 0;
     let turnCount = 0;
+    let currentQuestion = null;
 
     const diceFaces = {
       1: "⚀",
@@ -378,10 +435,37 @@
       weapon: "武器"
     };
 
+    const quizData = [
+      {
+        question: "2X - 3 = 0，X = ?",
+        answer: "X = 1.5"
+      },
+      {
+        question: "7 × 6 = ?",
+        answer: "42"
+      },
+      {
+        question: "台灣的首都是哪裡？",
+        answer: "台北市"
+      },
+      {
+        question: "水的化學式是什麼？",
+        answer: "H₂O"
+      },
+      {
+        question: "10 - 4 = ?",
+        answer: "6"
+      },
+      {
+        question: "9 ÷ 3 = ?",
+        answer: "3"
+      }
+    ];
+
     const chanceEvents = [
       {
         title: "礦坑入口的火光",
-        story: "你在礦坑入口看見搖晃的火光，一位老工人沉默地替你指出較安全的道路。這不是神諭，比較像一種歷經無數次失敗後留下的善意。",
+        story: "你在礦坑入口看見搖晃的火光，一位老工人沉默地替你指出較安全的道路。這不是神諭，比較像一種經驗慢慢沉積後留下的善意。",
         effectByDice: {
           1: "你謹慎前進，步伐 +1",
           2: "你獲得補給，生命值 +1",
@@ -407,7 +491,7 @@
       },
       {
         title: "被遺忘的補給箱",
-        story: "沿著長滿荊棘的殘壁搜索時，你在石縫後發現一個補給箱。箱蓋已經歪斜，但內容物仍保有某種堅持不肯腐朽的整齊。",
+        story: "沿著殘壁搜索時，你在石縫後發現一個補給箱。箱蓋已經歪斜，但內容物還保有一種硬撐著不想散掉的整齊。",
         effectByDice: {
           1: "只找到少量乾糧，生命值 +1",
           2: "找到皮手套，攻擊力 +1，並裝備手套",
@@ -462,11 +546,11 @@
       },
       {
         title: "礦車軌道的分岔",
-        story: "老舊軌道在前方分岔，一側向著黑暗深處，一側蜿蜒繞行。你停下腳步時，彷彿連空氣也在等你選邊站。",
+        story: "老舊軌道在前方分岔，一側向著黑暗深處，一側蜿蜒繞行。你停下腳步時，連空氣都像在等你選邊站。",
         effectByDice: {
           1: "你保守選路，步伐 +1",
           2: "你小心試探，步伐 +1、生命值 +1",
-          3: "你找到可用的厚革褲甲，生命值 +1，並裝備褲甲",
+          3: "你找到厚革褲甲，生命值 +1，並裝備褲甲",
           4: "你決定抄近路，步伐 +2",
           5: "你找出礦坑節奏，步伐 +2、攻擊力 +1",
           6: "你精準判斷路線，步伐 +3、生命值 +1"
@@ -494,12 +578,12 @@
       },
       {
         title: "回到獵寮前的整備",
-        story: "在通往獵寮的途中，你稍作停留，整理裝備與呼吸。這一段不是高潮，卻像故事收束前那一下不動聲色的深呼吸。",
+        story: "在通往獵寮的途中，你稍作停留，整理裝備與呼吸。這一段不是高潮，卻像故事收束前那一下安靜但必要的深呼吸。",
         effectByDice: {
           1: "你重新站穩，生命值 +1",
           2: "你修整武器，攻擊力 +1",
           3: "你整頓步伐，步伐 +1、生命值 +1",
-          4: "你收拾了幾樣遺留物，攻擊力 +1、步伐 +1",
+          4: "你收拾遺留物，攻擊力 +1、步伐 +1",
           5: "你找到完整戰靴，步伐 +2，並裝備戰靴",
           6: "你以最佳狀態整備完成，生命值 +2、攻擊力 +1、步伐 +1"
         },
@@ -553,15 +637,6 @@
           apply() {
             player.hp += 2;
           }
-        },
-        {
-          level: "真幸運！",
-          css: "lucky",
-          text: "你撿到做工紮實的衣甲，讓你更能承受接下來的撞擊。",
-          apply() {
-            player.hp += 2;
-            equipLoot("armor", { name: "強化衣甲", bonus: "生命值 +2" });
-          }
         }
       ],
       neutral: [
@@ -580,13 +655,7 @@
         {
           level: "沒事就是好事",
           css: "neutral",
-          text: "你聽見野獸低鳴，幸好牠今天心情似乎比你更懶。",
-          apply() {}
-        },
-        {
-          level: "沒事就是好事",
-          css: "neutral",
-          text: "一陣灰塵從頭頂落下，幸好只是虛驚一場。",
+          text: "你聽見野獸低鳴，幸好牠今天對你沒有興趣。",
           apply() {}
         }
       ],
@@ -621,7 +690,7 @@
         {
           level: "不幸中的大幸",
           css: "unlucky",
-          text: "你慌亂中丟失一件護具，但至少沒有丟掉更要命的東西。",
+          text: "你慌亂中丟失一件護具，但至少沒有丟掉命。",
           apply() {
             removeRandomLoot();
           }
@@ -672,8 +741,8 @@
       if (chanceIndex >= chanceEvents.length) {
         chanceContent.innerHTML = `
           <div class="story-title">機會卡池已走到底</div>
-          <div>故事主線暫時告一段落。你可以重新開始，或自行繼續擴寫新的機會事件。</div>
-          <div class="effect-box"><strong>提示：</strong>到 <code>const chanceEvents = [ ... ]</code> 裡新增事件即可擴充。</div>
+          <div>故事主線暫時告一段落。你可以重新開始，或自行到程式裡繼續擴寫新的機會事件。</div>
+          <div class="effect-box"><strong>提示：</strong>到 <code>const chanceEvents = [ ... ]</code> 裡新增事件即可。</div>
         `;
         addLog("機會卡池已經沒有新卡了。");
         return;
@@ -715,6 +784,34 @@
       `;
 
       addLog(`命運【${event.level}】降臨。內容是：${event.text}`);
+    }
+
+    function newQuestion() {
+      if (quizData.length === 0) {
+        document.getElementById("quizContent").innerHTML = `
+          <div class="story-title">題庫是空的</div>
+          <div class="quiz-question">請到 <code>const quizData = [ ... ]</code> 裡新增題目。</div>
+          <div id="quizAnswer" class="quiz-answer"></div>
+        `;
+        return;
+      }
+
+      const randomIndex = Math.floor(Math.random() * quizData.length);
+      currentQuestion = quizData[randomIndex];
+
+      document.getElementById("quizContent").innerHTML = `
+        <div class="story-title">本回合題目</div>
+        <div class="quiz-question">${currentQuestion.question}</div>
+        <div id="quizAnswer" class="quiz-answer">${currentQuestion.answer}</div>
+      `;
+
+      addLog(`抽到題目：${currentQuestion.question}`);
+    }
+
+    function showAnswer() {
+      const answerBox = document.getElementById("quizAnswer");
+      if (!answerBox) return;
+      answerBox.style.display = "block";
     }
 
     function updateStatus() {
@@ -771,6 +868,7 @@
       rollDice();
       drawChance();
       drawFate();
+      newQuestion();
       updateStatus();
     }
 
@@ -779,6 +877,7 @@
       currentDice = null;
       chanceIndex = 0;
       turnCount = 0;
+      currentQuestion = null;
 
       document.getElementById("diceFace").textContent = "🎲";
       document.getElementById("diceNumber").textContent = "尚未擲骰";
@@ -790,7 +889,13 @@
 
       document.getElementById("fateContent").innerHTML = `
         <div class="story-title">尚未觸發命運事件</div>
-        <div>命運就像礦坑裡吹來的側風，不一定大，但總會改變你站的位置。</div>
+        <div>命運像礦坑裡的側風，不一定大，但總會讓火光歪一點。</div>
+      `;
+
+      document.getElementById("quizContent").innerHTML = `
+        <div class="story-title">尚未抽出題目</div>
+        <div class="quiz-question">按下「開始回合」後，這裡會隨機出現一道題目。</div>
+        <div id="quizAnswer" class="quiz-answer"></div>
       `;
 
       document.getElementById("logBox").innerHTML = "";
